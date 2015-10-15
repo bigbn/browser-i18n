@@ -2,39 +2,22 @@ var I18n = function(options){
     for (var prop in options) {
         this[prop] = options[prop];
     };
-
-    this.setLocale(this.locale);
+    this.getLocaleFileFromServer();
 };
 
 I18n.localeCache = {};
+I18n.locale = 'default';
+I18n.url = '/locale';
 
 I18n.prototype = {
-    defaultLocale: "en",
-    directory: "/locales",
-    extension: ".min.json",
+    locale: 'default',
 
-    getLocale: function(){
-        return this.locale;
-    },
-
-    setLocale: function(locale){
-        if(!locale)
-            locale = $("html").attr("lang");
-
-        if(!locale)
-            locale = this.defaultLocale;
-
-        this.locale = locale;
-
-        if(locale in I18n.localeCache) return;
-        else this.getLocaleFileFromServer();
-    },
 
     getLocaleFileFromServer: function(){
         localeFile = null;
 
         $.ajax({
-            url: this.directory + "/" + this.locale + this.extension,
+            url: I18n.url,
             async: false,
             dataType: 'json',
             success: function(data){
@@ -46,7 +29,9 @@ I18n.prototype = {
     },
 
     __: function(){
-        var msg = I18n.localeCache[this.locale][arguments[0]];
+        if  (I18n.localeCache[I18n.locale])
+        var msg = I18n.localeCache[I18n.locale][arguments[0]];
+        if (!msg) return _.toArray(arguments).join(' ');
 
         if (arguments.length > 1)
             msg = vsprintf(msg, Array.prototype.slice.call(arguments, 1));
@@ -55,7 +40,7 @@ I18n.prototype = {
     },
 
     __n: function(singular, count){
-        var msg = I18n.localeCache[this.locale][singular];
+        var msg = I18n.localeCache[I18n.locale][singular];
 
         count = parseInt(count, 10);
         if(count === 0)
